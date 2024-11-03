@@ -14,8 +14,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public void openNewQueue(Q queue) {
         if (queues.containsKey(queue)) {
-            String msg = "Queue " + queue + " is already present"; 
-            throw new java.lang.IllegalArgumentException(msg); 
+            throw new java.lang.IllegalArgumentException("Queue " + queue + " is already present"); 
         }
         queues.put(queue, new LinkedList<>()); 
     }
@@ -23,8 +22,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public boolean isQueueEmpty(Q queue) {
         if (!queues.containsKey(queue)) {
-            String msg = "Queue " + queue + " is not present"; 
-            throw new java.lang.IllegalArgumentException(msg); 
+            throw new java.lang.IllegalArgumentException("Queue " + queue + " is not present"); 
         }
         return queues.get(queue).isEmpty(); 
     }
@@ -32,8 +30,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public void enqueue(T elem, Q queue) {
         if (!queues.containsKey(queue)) {
-            String msg = "Queue " + queue + " is not present"; 
-            throw new java.lang.IllegalArgumentException(msg); 
+            throw new java.lang.IllegalArgumentException("Queue " + queue + " is not present"); 
         }
         queues.get(queue).add(elem); 
     }
@@ -41,8 +38,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public T dequeue(Q queue) {
         if (!queues.containsKey(queue)) {
-            String msg = "Queue " + queue + " is not present"; 
-            throw new java.lang.IllegalArgumentException(msg); 
+            throw new java.lang.IllegalArgumentException("Queue " + queue + " is not present"); 
         }
         return queues.get(queue).poll(); 
     }
@@ -68,8 +64,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public List<T> dequeueAllFromQueue(Q queue) {
         if (!queues.containsKey(queue)) {
-            String msg = "Queue " + queue + " is not present"; 
-            throw new java.lang.IllegalArgumentException(msg); 
+            throw new java.lang.IllegalArgumentException("Queue " + queue + " is not present"); 
         }
 
         List<T> allElemRemoved = new LinkedList<>(); 
@@ -83,19 +78,24 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public void closeQueueAndReallocate(Q queue) {
         if (!queues.containsKey(queue)) {
-            String msg = "Queue " + queue + " is not present"; 
-            throw new java.lang.IllegalArgumentException(msg); 
+            throw new java.lang.IllegalArgumentException("Queue " + queue + " is not present"); 
         }
 
-        this.getShortestQueue(this.availableQueues()).addAll(this.dequeueAllFromQueue(queue)); 
-        queues.remove(queue); 
+        //this.getShortestQueue(this.availableQueues()).addAll(this.dequeueAllFromQueue(queue)); 
+        var it = this.availableQueues().iterator(); 
+        while (it.hasNext() && this.availableQueues().contains(queue)) {
+            Q actual_queue = it.next(); 
+            if (!actual_queue.equals(queue)) {
+                this.queues.get(actual_queue).addAll(this.dequeueAllFromQueue(queue)); 
+                this.queues.remove(queue); 
+            }
+        }
 
-        if(this.availableQueues().isEmpty()) {
-            String msg = "there's no alternative queue for moving elements to"; 
-            throw new java.lang.IllegalStateException(msg);
+        if(this.availableQueues().contains(queue)) {
+            throw new java.lang.IllegalStateException("there's no alternative queue for moving elements to");
         }
     }
-
+    /* 
     private Queue<T> getShortestQueue(Set<Q> set) {
         Queue<T> shortestQueue = null;
         int minSize = Integer.MAX_VALUE;
@@ -109,5 +109,5 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
         
         return shortestQueue;
     }
-
+    */
 }
